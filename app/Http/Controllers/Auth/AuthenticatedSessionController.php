@@ -15,9 +15,10 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('auth.login');
+        $role = $request->route('role');
+        return view('auth.login', compact('role'));
     }
 
     /**
@@ -25,17 +26,61 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Ambil role dari route parameter
+        $expectedRole = $request->route('role');
+        
+        // Authenticate user terlebih dahulu
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        // TAMBAHKAN LOGIKA INI
-        if (auth()->user()->role === 'admin') {
-            return redirect()->intended('/admin/dashboard');
+        // Validasi role jika ada parameter role di URL
+        if ($expectedRole) {
+            $userRole = Auth::user()->role;
+            
+            // Mapping role untuk validasi
+            $roleMapping = [
+                'admin' => 'admin',
+                'guru' => 'guru', 
+                'siswa' => 'siswa'
+            ];
+            
+            // Cek apakah role user sesuai dengan halaman login
+            if (isset($roleMapping[$expectedRole]) && $userRole !== $roleMapping[$expectedRole]) {
+                // Logout user jika role tidak sesuai
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                
+                // Redirect kembali dengan error message
+                return redirect()->route('login', ['role' => $expectedRole])
+                    ->withErrors([
+                        'role' => "Anda tidak memiliki akses untuk login sebagai {$expectedRole}. Silakan gunakan halaman login yang sesuai dengan role Anda."
+                    ]);
+            }
         }
 
-        // Ini adalah redirect default untuk role selain admin (yaitu siswa)
-        return redirect()->intended(RouteServiceProvider::HOME);
+        // Redirect ke dashboard sesuai role
+        return $this->redirectToDashboard();
+    }
+
+    /**
+     * Redirect user to appropriate dashboard based on role
+     */
+    private function redirectToDashboard(): RedirectResponse
+    {
+        $user = Auth::user();
+        
+        switch ($user->role) {
+            case 'admin':
+                return redirect()->intended(route('admin.dashboard'));
+            case 'guru':
+                return redirect()->intended(route('dashboard')); // Sementara ke dashboard biasa, nanti bisa buat guru.dashboard
+            case 'siswa':
+                return redirect()->intended(route('dashboard'));
+            default:
+                return redirect()->intended(RouteServiceProvider::HOME);
+        }
     }
 
     /**

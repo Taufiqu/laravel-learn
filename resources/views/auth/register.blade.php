@@ -2,15 +2,7 @@
     <!-- Header Section -->
     <div class="mb-6 text-center">
         @if(isset($role) && $role)
-            @if($role == 'admin')
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
-                    <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                    </svg>
-                </div>
-                <h2 class="text-2xl font-bold text-red-800 dark:text-red-300">Daftar Administrator</h2>
-                <p class="text-red-600 dark:text-red-400 text-sm mt-2">Buat akun admin baru untuk mengelola sistem</p>
-            @elseif($role == 'guru')
+            @if($role == 'guru')
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
                     <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
@@ -43,7 +35,6 @@
                 <x-input-label for="role" :value="__('Pilih Role')" />
                 <select id="role" name="role" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
                     <option value="">Pilih Role...</option>
-                    <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrator</option>
                     <option value="guru" {{ old('role') == 'guru' ? 'selected' : '' }}>Guru</option>
                     <option value="siswa" {{ old('role') == 'siswa' ? 'selected' : '' }}>Siswa</option>
                 </select>
@@ -55,8 +46,7 @@
             <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                     <span class="font-medium">Role:</span> 
-                    @if($role == 'admin') Administrator
-                    @elseif($role == 'guru') Guru  
+                    @if($role == 'guru') Guru  
                     @elseif($role == 'siswa') Siswa
                     @else {{ ucfirst($role) }}
                     @endif

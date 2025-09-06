@@ -3,10 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SiswaController; // <-- Tambahkan ini
-use App\Http\Controllers\KelasController; // <-- Tambahkan ini
-use App\Http\Controllers\GuruController; // <-- Tambahkan ini
-use App\Http\Controllers\MataPelajaranController; // <-- Tambahkan ini
+use App\Http\Controllers\SiswaController; 
+use App\Http\Controllers\KelasController;
+use App\Http\Controllers\GuruController; 
+use App\Http\Controllers\MataPelajaranController; 
+use App\Http\Controllers\Auth\AuthenticatedSessionController; 
 
 /*
 |--------------------------------------------------------------------------
@@ -31,34 +32,34 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// 1.1 Rute Login dengan Parameter Role (untuk membedakan jenis login)
-Route::get('/login/{role?}', function($role = null) {
-    if (Auth::check()) {
-        if (Auth::user()->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        } else {
-            return redirect()->route('dashboard');
-        }
-    }
+// 2. Rute untuk Guest (User belum login) - MIDDLEWARE GROUP
+Route::middleware('guest')->group(function () {
     
-    return view('auth.login', compact('role'));
-})->name('login');
-
-// 1.2 Rute Register dengan Pre-filled Role Selection
-Route::get('/register/{role?}', function($role = null) {
-    if (Auth::check()) {
-        if (Auth::user()->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        } else {
-            return redirect()->route('dashboard');
+    // Rute Login dengan Parameter Role (untuk membedakan jenis login)
+    Route::get('/login/{role?}', function($role = null) {
+        // Jika tidak ada role, tampilkan halaman pilihan role login
+        if (!$role) {
+            return view('auth.login-select');
         }
-    }
+        return view('auth.login', compact('role'));
+    })->name('login');
     
-    return view('auth.register', compact('role'));
-})->name('register');
+    // Rute POST Login dengan Parameter Role - dengan validasi role
+    Route::post('/login/{role?}', [AuthenticatedSessionController::class, 'store'])
+        ->name('login.store');
+    
+    // Rute Register dengan Pre-filled Role Selection
+    Route::get('/register/{role?}', function($role = null) {
+        return view('auth.register', compact('role'));
+    })->name('register');
+    
+    // Rute POST Register dengan role validation
+    Route::post('/register/{role?}', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store'])
+        ->name('register.store');
+    
+});
 
-
-// 2. Rute untuk Semua Pengguna yang Terautentikasi (Siswa & Admin)
+// 3. Rute untuk Semua Pengguna yang Terautentikasi (Siswa & Admin)
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard default (yang akan diakses siswa setelah login)
     Route::get('/dashboard', function () {
@@ -72,7 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
-// 3. Rute KHUSUS UNTUK ADMIN (Dilindungi middleware 'auth' dan 'role:admin')
+// 4. Rute KHUSUS UNTUK ADMIN (Dilindungi middleware 'auth' dan 'role:admin')
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // Rute Dashboard Admin
